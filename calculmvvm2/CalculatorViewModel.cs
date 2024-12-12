@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +11,13 @@ using calculmvvm2;
 
 public class CalculatorViewModel : INotifyPropertyChanged
 {
+    public class DivideException : Exception
+    {
+        public DivideException(string message):
+            base(message)
+        { }
+    }
+
     private readonly CalculatorModel _model;
     private string _display;
     private double _currentValue;
@@ -56,27 +63,39 @@ public class CalculatorViewModel : INotifyPropertyChanged
     {
         double secondValue = double.Parse(Display);
         double result = 0;
-
-        switch (_currentOperation)
+        try
         {
-            case "Add":
-                result = _model.Add(_currentValue, secondValue);
-                break;
-            case "Subtract":
-                result = _model.Subtract(_currentValue, secondValue);
-                break;
-            case "Multiply":
-                result = _model.Multiply(_currentValue, secondValue);
-                break;
-            case "Divide":
-                if (secondValue != 0)
-                    result = _model.Divide(_currentValue, secondValue);
-                else
-                    Display = "Error"; 
-                return; 
-        }
 
-        Display = result.ToString();
+
+            switch (_currentOperation)
+            {
+                case "Add":
+                    result = _model.Add(_currentValue, secondValue);
+                    break;
+                case "Subtract":
+                    result = _model.Subtract(_currentValue, secondValue);
+                    break;
+                case "Multiply":
+                    result = _model.Multiply(_currentValue, secondValue);
+                    break;
+                case "Divide":
+                    if (secondValue == 0)
+                        throw new DivideException("я запрещаю делить на 0 ");
+                    result = _model.Divide(_currentValue, secondValue);
+                    break;
+
+            }
+                Display = result.ToString();
+        }
+        catch(DivideException ex)
+        {
+            Display = ex.Message;
+
+        }  
+        catch (FormatException ) 
+        {
+            Display = "невенрый формат";
+        }
     }
 
     private void Clear()
